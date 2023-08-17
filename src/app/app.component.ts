@@ -1,7 +1,7 @@
 import { Component, Injectable, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { forkJoin, Observable, of, throwError } from 'rxjs';
-import { distinctUntilChanged, debounceTime, filter, catchError } from 'rxjs/operators';
+import { distinctUntilChanged, debounceTime, filter, catchError, map, startWith, switchMap } from 'rxjs/operators';
 
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
@@ -22,7 +22,7 @@ export class AppComponent implements OnInit {
   ngOnInit() {
     this.myControl.valueChanges.pipe(
       debounceTime(600),
-      filter(value => !!value),
+      filter(value => !!value && value.length > 2),
       distinctUntilChanged()
     ).subscribe(value => this.handleSearch(value))
   }
@@ -30,8 +30,13 @@ export class AppComponent implements OnInit {
   private handleSearch(value: string): void {
     if (value.trim() !== '') {
       this.forecastService.searchCitiesByName(value).subscribe((res) => {
-        this.$filteredOptions = of(res.list)
-      })
+        this.$filteredOptions = of(res.list);
+        if (res.list.length === 0) {
+          this.myControl.setErrors({ noResults: true });
+        } else {
+          this.myControl.setErrors(null);
+        }
+      });
     }
   }
 
@@ -44,6 +49,8 @@ export class AppComponent implements OnInit {
       this.$forecast = of(forecastData);
     });
   }
+
+  displayedColumns: string[] = ['dateTime', 'temperature', 'tempMin', 'tempMax', 'weatherDescription'];
 }
 
 @Injectable({
@@ -62,11 +69,15 @@ export class ForecastService {
   }
 
   getCurrentWeather(cityName: string): Observable<any> {
-    return this.http.get(`${this.apiLink}/weather?q=${cityName}&appid=${this.apiKey}`)
+    return this.http.get(`${this.apiLink}/weather?q=${cityName}&appid=${this.apiKey}`).pipe(map((item: any) => {
+      item.main.temp = Math.round(item.main.temp);
+      return item;
+    }))
   }
 
   getForecastedWeather(cityName: string): Observable<any> {
-    return this.http.get(`${this.apiLink}/forecast?q=${cityName}&cnt=5&appid=${this.apiKey}`)
+    const url = `${this.apiLink}/forecast?q=${cityName}&cnt=5&appid=${this.apiKey}`
+    return this.http.get(url).pipe(catchError(this.handleError));
   }
 
   private handleError(error: HttpErrorResponse): Observable<never> {

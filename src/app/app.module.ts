@@ -8,7 +8,9 @@ import {MatTableModule} from '@angular/material/table';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { HttpClientModule } from '@angular/common/http';
+
+import { ErrorStateMatcher, ShowOnDirtyErrorStateMatcher } from '@angular/material/core';
 
 
 @NgModule({
@@ -25,7 +27,7 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
     MatInputModule,
     HttpClientModule
   ],
-  providers: [ForecastService],
+  providers: [ForecastService, { provide: ErrorStateMatcher, useClass: ShowOnDirtyErrorStateMatcher }],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
