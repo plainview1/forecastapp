@@ -1,0 +1,28 @@
+<form class="example-form">
+  <mat-form-field class="example-full-width">
+    <mat-label>City</mat-label>
+    <input type="text"
+           placeholder="Start typing"
+           aria-label="City"
+           matInput
+           [formControl]="myControl"
+           [matAutocomplete]="auto">
+    <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete" (optionSelected)="optionSelected($event)">
+      <mat-option *ngFor="let option of $filteredOptions | async" [value]="option?.name">
+        {{option?.name}} - {{option?.sys.country}}
+      </mat-option>
+    </mat-autocomplete>
+  </mat-form-field>
+</form>
+
+{{ ($weather | async)?.main.humidity }}
+{{ ($weather | async)?.main.temp }}
+{{ ($weather | async)?.weather[0].description }}
+
+<br />
+
+{{ ($forecast | async)?.list[0].dt_txt }}
+{{ ($forecast | async)?.list[0].main.temp }}
+{{ ($forecast | async)?.list[0].main.temp_min }}
+{{ ($forecast | async)?.list[0].main.temp_max }}
+{{ ($forecast | async)?.list[0].weather[0].description }}
