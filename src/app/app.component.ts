@@ -1,7 +1,14 @@
 import { Component, Injectable, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { forkJoin, Observable, of, throwError } from 'rxjs';
-import { distinctUntilChanged, debounceTime, filter, catchError, map, shareReplay } from 'rxjs/operators';
+import {
+  distinctUntilChanged,
+  debounceTime,
+  filter,
+  catchError,
+  map,
+  shareReplay,
+} from 'rxjs/operators';
 
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
@@ -20,11 +27,13 @@ export class AppComponent implements OnInit {
   constructor(private forecastService: ForecastService) {}
 
   ngOnInit() {
-    this.myControl.valueChanges.pipe(
-      debounceTime(600),
-      filter(value => !!value && value.length > 2),
-      distinctUntilChanged()
-    ).subscribe(value => this.handleSearch(value))
+    this.myControl.valueChanges
+      .pipe(
+        debounceTime(600),
+        filter((value) => !!value && value.length > 2),
+        distinctUntilChanged()
+      )
+      .subscribe((value) => this.handleSearch(value));
   }
 
   private handleSearch(value: string): void {
@@ -43,14 +52,20 @@ export class AppComponent implements OnInit {
   optionSelected(event: MatAutocompleteSelectedEvent): void {
     forkJoin([
       this.forecastService.getCurrentWeather(event.option.value),
-      this.forecastService.getForecastedWeather(event.option.value)
+      this.forecastService.getForecastedWeather(event.option.value),
     ]).subscribe(([weatherData, forecastData]) => {
       this.$weather = of(weatherData);
       this.$forecast = of(forecastData);
     });
   }
 
-  displayedColumns: string[] = ['dateTime', 'temperature', 'tempMin', 'tempMax', 'weatherDescription'];
+  displayedColumns: string[] = [
+    'dateTime',
+    'temperature',
+    'tempMin',
+    'tempMax',
+    'weatherDescription',
+  ];
 }
 
 @Injectable({
@@ -59,10 +74,11 @@ export class AppComponent implements OnInit {
 export class ForecastService {
   private apiKey = `2d42a22d65658c13b1bf85a24c188eda`;
   private apiLink = `https://api.openweathermap.org/data/2.5`;
-  private cache: { [city: string]: { timestamp: number; data: Observable<any> } } = {};
+  private cache: {
+    [city: string]: { timestamp: number; data: Observable<any> };
+  } = {};
 
-  constructor(private http: HttpClient) {
-  }
+  constructor(private http: HttpClient) {}
 
   searchCitiesByName(cityName: string): Observable<any> {
     const url = `${this.apiLink}/find?q=${cityName}&appid=${this.apiKey}`;
@@ -71,18 +87,23 @@ export class ForecastService {
 
   getCurrentWeather(cityName: string): Observable<any> {
     const url = `${this.apiLink}/weather?q=${cityName}&appid=${this.apiKey}`;
-    return this.checkInCacheOrRequest(url, `current_${cityName}`).pipe(map((item: any) => {
-      item.main.temp = Math.round(item.main.temp);
-      return item;
-    }))
+    return this.checkInCacheOrRequest(url, `current_${cityName}`).pipe(
+      map((item: any) => {
+        item.main.temp = Math.round(item.main.temp);
+        return item;
+      })
+    );
   }
 
   getForecastedWeather(cityName: string): Observable<any> {
-    const url = `${this.apiLink}/forecast?q=${cityName}&cnt=5&appid=${this.apiKey}`
+    const url = `${this.apiLink}/forecast?q=${cityName}&cnt=5&appid=${this.apiKey}`;
     return this.checkInCacheOrRequest(url, `forecast_${cityName}`);
   }
 
-  private checkInCacheOrRequest(url: string, cityName: string): Observable<any> {
+  private checkInCacheOrRequest(
+    url: string,
+    cityName: string
+  ): Observable<any> {
     const cachedData = this.cache[cityName];
     if (cachedData && this.isDataFresh(cachedData.timestamp)) {
       return cachedData.data;
@@ -101,15 +122,11 @@ export class ForecastService {
   }
 
   private getFreshData(url: string): Observable<any> {
-    return this.fetchData(url).pipe(
-      shareReplay(1)
-    );
+    return this.fetchData(url).pipe(shareReplay(1));
   }
 
   private fetchData(url: string): Observable<any> {
-    return this.http.get(url).pipe(
-      catchError(this.handleError)
-    );
+    return this.http.get(url).pipe(catchError(this.handleError));
   }
 
   private handleError(error: HttpErrorResponse): Observable<never> {
