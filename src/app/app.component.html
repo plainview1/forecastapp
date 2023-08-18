@@ -1,60 +1,62 @@
-<form class="example-form">
-  <mat-form-field class="example-full-width">
-    <mat-label>City</mat-label>
-    <input type="text"
-           placeholder="Start typing"
-           aria-label="City"
-           matInput
-           [formControl]="myControl"
-           [matAutocomplete]="auto">
-    <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete" (optionSelected)="optionSelected($event)">
-      <mat-option *ngFor="let option of $filteredOptions | async" [value]="option?.name">
-        {{option?.name}} - {{option?.sys.country}}
-      </mat-option>
-    </mat-autocomplete>
-    <mat-hint *ngIf="myControl.value && myControl.value.length < 3">
-      Provide at least 3 characters to see suggestions.
-    </mat-hint>
-    <mat-error *ngIf="myControl.hasError('noResults')">
-      No cities found
-    </mat-error>
-  </mat-form-field>
-</form>
-
-<div class="data-container" *ngIf="($weather | async) as item">
-  <div class="city">{{ item.name }}</div>
-  <div class="temperature">{{ item.main.temp + ' °F' }}</div>
-  <div class="description">{{ item.weather[0].description }}</div>
-  <div class="humidity">{{ 'Humidity ' + item.main.humidity }}</div>
+<div class="mat-app-background" style="height: 100%; width: 100%;">
+  <form class="example-form">
+    <mat-form-field class="example-full-width">
+      <mat-label>City</mat-label>
+      <input type="text"
+             placeholder="Start typing"
+             aria-label="City"
+             matInput
+             [formControl]="myControl"
+             [matAutocomplete]="auto">
+      <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete" (optionSelected)="optionSelected($event)">
+        <mat-option *ngFor="let option of $filteredOptions | async" [value]="option?.name">
+          {{option?.name}} - {{option?.sys.country}}
+        </mat-option>
+      </mat-autocomplete>
+      <mat-hint *ngIf="myControl.value && myControl.value.length < 3">
+        Provide at least 3 characters to see suggestions.
+      </mat-hint>
+      <mat-error *ngIf="myControl.hasError('noResults')">
+        No cities found
+      </mat-error>
+    </mat-form-field>
+  </form>
+  
+  <div class="data-container" *ngIf="($weather | async) as item">
+    <div class="city">{{ item.name }}</div>
+    <div class="temperature">{{ item.main.temp + ' °F' }}</div>
+    <div class="description">{{ item.weather[0].description }}</div>
+    <div class="humidity">{{ 'Humidity ' + item.main.humidity }}</div>
+  </div>
+  
+  <mat-table [dataSource]="($forecast | async)?.list">
+    <ng-container matColumnDef="dateTime">
+      <mat-header-cell *matHeaderCellDef>Date</mat-header-cell>
+      <mat-cell *matCellDef="let forecast">{{ forecast.dt_txt | date:'MMM d' }}</mat-cell>
+    </ng-container>
+  
+    <ng-container matColumnDef="temperature">
+      <mat-header-cell *matHeaderCellDef>Temperature</mat-header-cell>
+      <mat-cell *matCellDef="let forecast">{{ forecast.main.temp.toFixed(0) + ' °F' }}</mat-cell>
+    </ng-container>
+  
+    <ng-container matColumnDef="tempMin">
+      <mat-header-cell *matHeaderCellDef>(Min)</mat-header-cell>
+      <mat-cell *matCellDef="let forecast">{{ forecast.main.temp_min.toFixed(0) + ' °F' }}</mat-cell>
+    </ng-container>
+  
+    <ng-container matColumnDef="tempMax">
+      <mat-header-cell *matHeaderCellDef>(Max)</mat-header-cell>
+      <mat-cell *matCellDef="let forecast">{{ forecast.main.temp_max.toFixed(0) + ' °F' }}</mat-cell>
+    </ng-container>
+  
+    <ng-container matColumnDef="weatherDescription">
+      <mat-header-cell *matHeaderCellDef>Description</mat-header-cell>
+      <mat-cell *matCellDef="let forecast">{{ forecast.weather[0].description }}</mat-cell>
+    </ng-container>
+  
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+  </mat-table>
 </div>
-
-<mat-table [dataSource]="($forecast | async)?.list">
-  <ng-container matColumnDef="dateTime">
-    <mat-header-cell *matHeaderCellDef>Date</mat-header-cell>
-    <mat-cell *matCellDef="let forecast">{{ forecast.dt_txt | date:'MMM d' }}</mat-cell>
-  </ng-container>
-
-  <ng-container matColumnDef="temperature">
-    <mat-header-cell *matHeaderCellDef>Temperature</mat-header-cell>
-    <mat-cell *matCellDef="let forecast">{{ forecast.main.temp.toFixed(0) + ' °F' }}</mat-cell>
-  </ng-container>
-
-  <ng-container matColumnDef="tempMin">
-    <mat-header-cell *matHeaderCellDef>(Min)</mat-header-cell>
-    <mat-cell *matCellDef="let forecast">{{ forecast.main.temp_min.toFixed(0) + ' °F' }}</mat-cell>
-  </ng-container>
-
-  <ng-container matColumnDef="tempMax">
-    <mat-header-cell *matHeaderCellDef>(Max)</mat-header-cell>
-    <mat-cell *matCellDef="let forecast">{{ forecast.main.temp_max.toFixed(0) + ' °F' }}</mat-cell>
-  </ng-container>
-
-  <ng-container matColumnDef="weatherDescription">
-    <mat-header-cell *matHeaderCellDef>Description</mat-header-cell>
-    <mat-cell *matCellDef="let forecast">{{ forecast.weather[0].description }}</mat-cell>
-  </ng-container>
-
-  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-  <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
-</mat-table>
 
